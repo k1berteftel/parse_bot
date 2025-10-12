@@ -131,7 +131,7 @@ async def my_channels_pager(clb: CallbackQuery, widget: Button, dialog_manager: 
 
 
 async def my_chat_selector(clb: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
-    await clb.answer('Начался процесс считывания базы пользователей, пожалуйста ожидайте')
+    await clb.message.answer('Начался процесс считывания базы пользователей, пожалуйста ожидайте')
     users = dialog_manager.dialog_data.get('users')
     session: DataInteraction = dialog_manager.middleware_data.get('session')
     account_id = dialog_manager.dialog_data.get('account_id')
