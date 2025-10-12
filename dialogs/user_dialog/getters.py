@@ -53,17 +53,17 @@ async def get_channel(msg: Message, widget: ManagedTextInput, dialog_manager: Di
     account = await session.get_account(account_id)
     message = await msg.answer('Начался процесс сбора базы')
     users = dialog_manager.dialog_data.get('users')
-    new_users = await filter_user_base(
+    users = await filter_user_base(
         f'accounts/{msg.from_user.id}_{account.account_name.replace(" ", "_")}',
         text,
         msg.from_user.id,
-        msg.bot
+        msg.bot,
+        users
     )
-    if not new_users:
+    if not users:
         await msg.answer('❗️При сборе базы произошла какая-то ошибка пожалуйста попробуйте снова')
         await dialog_manager.switch_to(startSG.collect_base)
         return
-    users.extend(new_users)
     dialog_manager.dialog_data['users'] = users
     await message.delete()
     await dialog_manager.switch_to(startSG.collect_base)
@@ -77,17 +77,17 @@ async def get_forward_message(msg: Message, widget: MessageInput, dialog_manager
     account_id = dialog_manager.dialog_data.get('account_id')
     account = await session.get_account(account_id)
     users = dialog_manager.dialog_data.get('users')
-    new_users = await filter_user_base(
+    users = await filter_user_base(
         f'accounts/{msg.from_user.id}_{account.account_name.replace(" ", "_")}',
         msg.forward_from_chat.id,
         msg.from_user.id,
-        msg.bot
+        msg.bot,
+        users
     )
-    if not new_users:
+    if not users:
         await msg.answer('❗️При сборе базы произошла какая-то ошибка пожалуйста попробуйте снова')
         await dialog_manager.switch_to(startSG.collect_base)
         return
-    users.extend(new_users)
     dialog_manager.dialog_data['users'] = users
     await dialog_manager.switch_to(startSG.collect_base)
 
@@ -136,17 +136,17 @@ async def my_chat_selector(clb: CallbackQuery, widget: Select, dialog_manager: D
     session: DataInteraction = dialog_manager.middleware_data.get('session')
     account_id = dialog_manager.dialog_data.get('account_id')
     account = await session.get_account(account_id)
-    new_users = await filter_user_base(
+    users = await filter_user_base(
         f'accounts/{clb.from_user.id}_{account.account_name.replace(" ", "_")}',
         int(item_id),
         clb.from_user.id,
-        clb.bot
+        clb.bot,
+        users
     )
-    if not new_users:
+    if not users:
         await clb.message.answer('❗️При сборе базы произошла какая-то ошибка пожалуйста попробуйте снова')
         await dialog_manager.switch_to(startSG.collect_base)
         return
-    users.extend(new_users)
     dialog_manager.dialog_data['users'] = users
     await dialog_manager.switch_to(startSG.collect_base)
 

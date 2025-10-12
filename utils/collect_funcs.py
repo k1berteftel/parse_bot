@@ -52,7 +52,8 @@ async def _check_personal_channel(app: Client, username: str) -> dict | None:
     await asyncio.sleep(1)
     if user.personal_channel:
         return {
-            'username': '@' + user.username,
+            'user_id': user.id,
+            'username': '@' + user.username if user.username else '-',
             'bio': user.bio,
             'channel': user.personal_channel.invite_link if
             user.personal_channel.invite_link else 'https://t.me/' + user.personal_channel.username if
@@ -62,14 +63,15 @@ async def _check_personal_channel(app: Client, username: str) -> dict | None:
         link = find_telegram_link_strict(user.bio)
         if link:
             return {
-                'username': '@' + user.username,
+                'user_id': user.id,
+                'username': '@' + user.username if user.username else '-',
                 'bio': user.bio,
                 'channel': link
             }
     return None
 
 
-async def collect_users_base(account: str, bot: Bot, user_id: int, channel: str | int) -> list[str] | None:
+async def collect_users_base(account: str, bot: Bot, user_id: int, channel: str | int, user_ids: list[int]) -> list[str] | None:
     users = []
     try:
         app = Client(account, api_id=api_id, api_hash=api_hash)
@@ -91,7 +93,7 @@ async def collect_users_base(account: str, bot: Bot, user_id: int, channel: str 
         try:
             async for user in members:
                 if user.user.username and not user.user.is_bot and not user.user.is_contact and not user.user.verification_status.is_fake:
-                    if user.user.username not in users:
+                    if user.user.username not in users and user.user.id not in user_ids:
                         new_users.append(user.user.username)
             if len(new_users) > 30:
                 users.extend(new_users)
@@ -99,7 +101,7 @@ async def collect_users_base(account: str, bot: Bot, user_id: int, channel: str 
                 async for message in app.get_chat_history(channel, limit=10000):
                     user = message.from_user
                     if user and (not user.is_bot and not user.verification_status.is_fake) and user.username and user.username not in users:
-                        if user.username not in new_users:
+                        if user.username not in new_users and user.id not in user_ids:
                             new_users.append(user.username)
                 users.extend(new_users)
         except Exception as err:
@@ -108,8 +110,9 @@ async def collect_users_base(account: str, bot: Bot, user_id: int, channel: str 
     return users if users else None
 
 
-async def filter_user_base(account: str, channel: str | int, user_id: int, bot: Bot):
-    base = await collect_users_base(account, bot, user_id, channel)
+async def filter_user_base(account: str, channel: str | int, user_id: int, bot: Bot, users: list[dict]):
+    user_ids = [user.get('id') for user in users]
+    base = await collect_users_base(account, bot, user_id, channel, user_ids)
     if not base:
         return None
     await asyncio.sleep(2)
