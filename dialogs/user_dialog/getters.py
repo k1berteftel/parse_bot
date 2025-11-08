@@ -40,7 +40,9 @@ async def get_channel(msg: Message, widget: ManagedTextInput, dialog_manager: Di
         text = int(text)
     except Exception as err:
         print(err)
-        if 't.me' not in text:
+        if text.startswith('@'):
+            text = text[1::]
+        elif 't.me' not in text:
             await msg.answer('❗️Вы ввели ссылку не в том формате, пожалуйста попробуйте снова')
             return
         try:

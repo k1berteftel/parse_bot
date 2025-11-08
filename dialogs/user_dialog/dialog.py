@@ -11,7 +11,7 @@ from states.state_groups import startSG
 
 user_dialog = Dialog(
     Window(
-        Const('Приветственный текст'),
+        Const('Главное меню'),
         Column(
             Button(Const('🗂Собрать базу'), id='base_account_choose', on_click=getters.choose_account_switcher),
             SwitchTo(Const('👥Управление аккаунтами'), id='accounts_switcher', state=startSG.accounts),
