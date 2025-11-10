@@ -125,6 +125,7 @@ async def collect_users_base(account: str, bot: Bot, user_id: int, channel: str 
         chat = await app.get_chat(channel)
         if chat.type == ChatType.CHANNEL:
             channel = chat.linked_chat.id if chat.linked_chat else None
+            print(channel)
         if not channel:
             return None
 
@@ -146,12 +147,38 @@ async def collect_users_base(account: str, bot: Bot, user_id: int, channel: str 
             if len(new_users) > 30:
                 users.extend(new_users)
             else:
-                async for message in app.get_chat_history(channel, limit=10000):
-                    user = message.from_user
-                    if user and (
-                            not user.is_bot and not user.verification_status.is_fake) and user.username and user.username not in users:
-                        if user.username not in new_users and user.id not in user_ids:
-                            new_users.append(user.username)
+                attempts = 0
+                max_attempts = 5
+
+                while attempts < max_attempts:
+                    try:
+                        async for message in app.get_chat_history(channel, limit=10000):
+                            user = message.from_user
+                            if user and (
+                                    not user.is_bot and not user.verification_status.is_fake) and user.username and user.username not in users:
+                                if user.username not in new_users and user.id not in user_ids:
+                                    new_users.append(user.username)
+                        # Если дошли до этой точки - успешно собрали историю
+                        break
+
+                    except FloodWait as e:
+                        wait_time = e.value
+                        attempts += 1
+                        if attempts < max_attempts:
+                            await bot.send_message(
+                                chat_id=user_id,
+                                text=f"⏳ Получена ошибка FloodWait. Жду {wait_time} секунд перед повторной попыткой {attempts}/{max_attempts}..."
+                            )
+                            await asyncio.sleep(wait_time + 1)  # +1 секунда для надежности
+                        else:
+                            await bot.send_message(
+                                chat_id=user_id,
+                                text=f"❌ Не удалось собрать историю сообщений после {max_attempts} попыток. Продолжаю с тем, что удалось собрать."
+                            )
+                    except Exception as e:
+                        print(f"Ошибка при сборе истории: {e}")
+                        break
+
                 users.extend(new_users)
 
         except Exception as err:
