@@ -170,7 +170,7 @@ async def type_choose(clb: CallbackQuery, widget: Button, dialog_manager: Dialog
             if len(text) >= 3850:
                 await clb.message.answer(text)
                 text = ''
-            text += f'{user.get("username")} - {user.get("channel")} ({user.get('subs')}) - \n<blockquote expandable>{user.get("bio")}</blockquote>'
+            text += f'{user.get("username")} - {user.get("channel")} ({user.get("subs")}) - \n<blockquote expandable>{user.get("bio")}</blockquote>'
         await clb.message.answer(text)
     else:
         columns = []
