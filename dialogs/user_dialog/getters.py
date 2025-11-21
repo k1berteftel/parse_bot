@@ -170,7 +170,7 @@ async def type_choose(clb: CallbackQuery, widget: Button, dialog_manager: Dialog
             if len(text) >= 3850:
                 await clb.message.answer(text)
                 text = ''
-            text += f'{user.get("username")} - {user.get("channel")} - \n<blockquote expandable>{user.get("bio")}</blockquote>'
+            text += f'{user.get("username")} - {user.get("channel")} ({user.get('subs')}) - \n<blockquote expandable>{user.get("bio")}</blockquote>'
         await clb.message.answer(text)
     else:
         columns = []
@@ -179,10 +179,11 @@ async def type_choose(clb: CallbackQuery, widget: Button, dialog_manager: Dialog
                 [
                     user.get('username'),
                     user.get('channel'),
-                    user.get('bio')
+                    user.get('bio'),
+                    user.get('subs')
                 ]
             )
-        columns.insert(0, ['Юзернейм', 'Канал', 'Био'])
+        columns.insert(0, ['Юзернейм', 'Канал', 'Био', 'Кол-во подписчиков в канале'])
         excel_table = get_xlsx_table(columns, f'База_xlx_{clb.from_user.id}')
         csv_table = get_csv_table(columns, f'База_csv_{clb.from_user.id}')
         media_group = MediaGroupBuilder(

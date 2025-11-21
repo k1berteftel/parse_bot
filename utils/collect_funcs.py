@@ -58,16 +58,22 @@ async def _check_personal_channel(app: Client, username: str) -> dict | None:
             'bio': user.bio,
             'channel': user.personal_channel.invite_link if
             user.personal_channel.invite_link else 'https://t.me/' + user.personal_channel.username if
-            user.personal_channel.username else '-'
+            user.personal_channel.username else '-',
+            'subs': user.personal_channel.members_count if user.personal_channel and user.personal_channel.members_count else '-'
         }
     if user.bio:
         link = find_telegram_link_strict(user.bio)
         if link:
+            try:
+                channel = await app.get_chat(link.split('_')[-1])
+            except Exception:
+                channel = None
             return {
                 'user_id': user.id,
                 'username': '@' + user.username if user.username else '-',
                 'bio': user.bio,
-                'channel': link
+                'channel': link,
+                'subs': channel.members_count if channel and channel.members_count else '-'
             }
     return None
 
@@ -152,7 +158,7 @@ async def collect_users_base(account: str, bot: Bot, user_id: int, channel: str 
 
                 while attempts < max_attempts:
                     try:
-                        async for message in app.get_chat_history(channel, limit=10000):
+                        async for message in app.get_chat_history(channel):
                             user = message.from_user
                             if user and (
                                     not user.is_bot and not user.verification_status.is_fake) and user.username and user.username not in users:
