@@ -1,5 +1,6 @@
 import asyncio
 import re
+import logging
 from datetime import datetime
 
 from aiogram import Bot
@@ -9,6 +10,9 @@ from pyrogram.errors import FloodWait
 
 from config_data.config import Config, load_config
 
+pyrogram_logger = logging.getLogger("pyrogram")
+
+pyrogram_logger.setLevel(logging.INFO)
 
 config: Config = load_config()
 
@@ -129,8 +133,10 @@ async def collect_users_base(account: str, bot: Bot, user_id: int, channel: str 
 
     async with app:
         chat = await app.get_chat(channel)
+        channel_type = chat.type
         if chat.type == ChatType.CHANNEL:
             channel = chat.linked_chat.id if chat.linked_chat else None
+            channel_type = ChatType.SUPERGROUP
             print(channel)
         if not channel:
             return None
@@ -150,7 +156,7 @@ async def collect_users_base(account: str, bot: Bot, user_id: int, channel: str 
                     if user.user.username not in users and user.user.id not in user_ids:
                         new_users.append(user.user.username)
 
-            if len(new_users) > 30:
+            if len(new_users) > 50 and channel_type != ChatType.SUPERGROUP:
                 users.extend(new_users)
             else:
                 attempts = 0
